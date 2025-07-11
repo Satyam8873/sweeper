@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Load API keys from environment
+# Load API keys
 NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY")
 API_SECRET_KEY = os.environ.get("API_SECRET_KEY")
 
@@ -16,37 +16,51 @@ client = OpenAI(
     api_key=NVIDIA_API_KEY
 )
 
-# Supported language translation modes
-LANG_MODES = {
-    "en_to_it": "Translate the user's English into perfect Italian.",
-    "it_to_en": "Translate the user's Italian into perfect English."
+# ISO 639-1 Language Map
+LANGUAGES = {
+    "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "ar": "Arabic", "hy": "Armenian", "az": "Azerbaijani",
+    "eu": "Basque", "be": "Belarusian", "bn": "Bengali", "bs": "Bosnian", "bg": "Bulgarian", "ca": "Catalan",
+    "ceb": "Cebuano", "zh": "Chinese (Simplified)", "zh-TW": "Chinese (Traditional)", "hr": "Croatian", "cs": "Czech",
+    "da": "Danish", "nl": "Dutch", "en": "English", "eo": "Esperanto", "et": "Estonian", "fi": "Finnish",
+    "fr": "French", "fy": "Frisian", "gl": "Galician", "ka": "Georgian", "de": "German", "el": "Greek",
+    "gu": "Gujarati", "ht": "Haitian Creole", "ha": "Hausa", "haw": "Hawaiian", "he": "Hebrew", "hi": "Hindi",
+    "hmn": "Hmong", "hu": "Hungarian", "is": "Icelandic", "ig": "Igbo", "id": "Indonesian", "ga": "Irish",
+    "it": "Italian", "ja": "Japanese", "jv": "Javanese", "kn": "Kannada", "kk": "Kazakh", "km": "Khmer",
+    "rw": "Kinyarwanda", "ko": "Korean", "ku": "Kurdish", "ky": "Kyrgyz", "lo": "Lao", "la": "Latin",
+    "lv": "Latvian", "lt": "Lithuanian", "lb": "Luxembourgish", "mk": "Macedonian", "mg": "Malagasy",
+    "ms": "Malay", "ml": "Malayalam", "mt": "Maltese", "mi": "Maori", "mr": "Marathi", "mn": "Mongolian",
+    "my": "Myanmar (Burmese)", "ne": "Nepali", "no": "Norwegian", "or": "Odia", "ps": "Pashto", "fa": "Persian",
+    "pl": "Polish", "pt": "Portuguese", "pa": "Punjabi", "ro": "Romanian", "ru": "Russian", "sm": "Samoan",
+    "gd": "Scots Gaelic", "sr": "Serbian", "st": "Sesotho", "sn": "Shona", "sd": "Sindhi", "si": "Sinhala",
+    "sk": "Slovak", "sl": "Slovenian", "so": "Somali", "es": "Spanish", "su": "Sundanese", "sw": "Swahili",
+    "sv": "Swedish", "tg": "Tajik", "ta": "Tamil", "tt": "Tatar", "te": "Telugu", "th": "Thai",
+    "tr": "Turkish", "tk": "Turkmen", "uk": "Ukrainian", "ur": "Urdu", "ug": "Uyghur", "uz": "Uzbek",
+    "vi": "Vietnamese", "cy": "Welsh", "xh": "Xhosa", "yi": "Yiddish", "yo": "Yoruba", "zu": "Zulu"
 }
 
 @app.route("/translate", methods=["POST"])
 def translate():
-    # 🔐 Authorization check
+    # 🔐 Check Authorization
     auth_header = request.headers.get("Authorization", "")
     if auth_header != f"Bearer {API_SECRET_KEY}":
         return jsonify({"error": "Unauthorized"}), 401
 
-    # 🔤 Parse request
     data = request.get_json()
     prompt = data.get("prompt", "").strip()
-    lang_mode = data.get("lang", "").strip().lower()
+    source = data.get("source", "").strip().lower()
+    target = data.get("target", "").strip().lower()
 
+    # 🔍 Validate
     if not prompt:
         return jsonify({"error": "Missing prompt"}), 400
-    if lang_mode not in LANG_MODES:
-        return jsonify({"error": "Invalid lang. Use 'en_to_it' or 'it_to_en'."}), 400
+    if source not in LANGUAGES or target not in LANGUAGES:
+        return jsonify({"error": "Unsupported source or target language"}), 400
 
     try:
-        # 🧠 Refined system prompt for clean translation
         system_prompt = (
-            f"You are a direct translator. {LANG_MODES[lang_mode]} "
-            "Only translate what makes sense. "
-            "If the input is gibberish or incomplete, return it as-is. "
-            "Do not add explanations or commentary. "
-            "Fix only obvious grammar mistakes."
+            f"You are a professional translator. Translate from {LANGUAGES[source]} "
+            f"to {LANGUAGES[target]}. Only return the translated sentence. "
+            "Fix obvious grammar mistakes but don't explain anything."
         )
 
         response = client.chat.completions.create(
@@ -62,7 +76,8 @@ def translate():
 
         translated = response.choices[0].message.content.strip()
         return jsonify({
-            "lang": lang_mode,
+            "from": source,
+            "to": target,
             "translated": translated
         })
 
