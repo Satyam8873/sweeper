@@ -40,8 +40,14 @@ def translate():
         return jsonify({"error": "Invalid lang. Use 'en_to_it' or 'it_to_en'."}), 400
 
     try:
-        # 🧠 Call NVIDIA NIM for translation
-        system_prompt = f"You are a translator. {LANG_MODES[lang_mode]}"
+        # 🧠 Refined system prompt for clean translation
+        system_prompt = (
+            f"You are a direct translator. {LANG_MODES[lang_mode]} "
+            "Only translate what makes sense. "
+            "If the input is gibberish or incomplete, return it as-is. "
+            "Do not add explanations or commentary. "
+            "Fix only obvious grammar mistakes."
+        )
 
         response = client.chat.completions.create(
             model="nvidia/llama-3.1-nemotron-ultra-253b-v1",
