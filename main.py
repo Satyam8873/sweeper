@@ -8,7 +8,7 @@ CORS(app)
 # NVIDIA NIM
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
-    api_key="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"
+    api_key=os.environ.get("NVIDIA_API_KEY")  # Load from env
 )
 
 # Supported translation modes
